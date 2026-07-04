@@ -1,20 +1,21 @@
 async def setup_hook(self):
-    print("DB接続開始")
+    print("start")
 
-    await self.db.connect()
-    await self.db.initialize()
+    try:
+        await self.db.connect()
+        await self.db.initialize()
 
-    print("DB接続完了")
+        print("db ok")
 
-    await self.load_extension("cogs.search")
-    await self.load_extension("cogs.admin")
+        await self.load_extension("cogs.search")
+        await self.load_extension("cogs.admin")
 
-    # 🔥 ギルド同期（確実に表示させる）
-    guild = discord.Object(id=1521974927505227946)
+        guild = discord.Object(id=1521974927505227946)
+        self.tree.copy_global_to(guild=guild)
 
-    self.tree.clear_commands(guild=guild)  # ←重要（古いコマンド削除）
-    self.tree.copy_global_to(guild=guild)
+        synced = await self.tree.sync(guild=guild)
 
-    synced = await self.tree.sync(guild=guild)
+        print("sync ok:", len(synced))
 
-    print(f"コマンド同期完了: {len(synced)}個")
+    except Exception as e:
+        print("❌ crash:", e)
