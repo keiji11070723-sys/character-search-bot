@@ -14,23 +14,28 @@ class CharacterBot(commands.Bot):
             intents=intents,
         )
 
+        # データベース
         self.db = Database()
 
     async def setup_hook(self):
         print("データベースへ接続中...")
 
+        # PostgreSQL接続
         await self.db.connect()
 
+        # テーブル作成
         await self.db.initialize()
 
         print("データベース接続完了")
 
+        # Cog読込
         await self.load_extension("cogs.search")
         await self.load_extension("cogs.admin")
 
-        await self.tree.sync()
+        # SlashCommand同期
+        synced = await self.tree.sync()
 
-        print("SlashCommand同期完了")
+        print(f"{len(synced)}個のコマンドを同期しました。")
 
     async def close(self):
         await self.db.close()
