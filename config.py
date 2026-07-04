@@ -1,12 +1,11 @@
 import os
 
-# Discord Bot Token
 TOKEN = os.getenv("DISCORD_TOKEN")
-
-# Railway PostgreSQL
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 起動時チェック
+print("TOKEN:", "OK" if TOKEN else "NG")
+print("DB:", "OK" if DATABASE_URL else "NG")
+
 if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN が設定されていません。")
 
