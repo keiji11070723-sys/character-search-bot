@@ -1,51 +1,20 @@
-import discord
-from discord.ext import commands
+async def setup_hook(self):
+    print("DB接続開始")
 
-from config import TOKEN
-from database.db import Database
+    await self.db.connect()
+    await self.db.initialize()
 
+    print("DB接続完了")
 
-class CharacterBot(commands.Bot):
-    def __init__(self):
-        intents = discord.Intents.default()
-        super().__init__(command_prefix="!", intents=intents)
+    await self.load_extension("cogs.search")
+    await self.load_extension("cogs.admin")
 
-        self.db = Database()
+    # 🔥 ギルド同期（確実に表示させる）
+    guild = discord.Object(id=1521974927505227946)
 
-    async def setup_hook(self):
-        print("DB接続開始")
+    self.tree.clear_commands(guild=guild)  # ←重要（古いコマンド削除）
+    self.tree.copy_global_to(guild=guild)
 
-        try:
-            await self.db.connect()
-            await self.db.initialize()
-            print("DB接続完了")
+    synced = await self.tree.sync(guild=guild)
 
-            await self.load_extension("cogs.search")
-            await self.load_extension("cogs.admin")
-
-            guild = discord.Object(id=1521974927505227946)
-            self.tree.copy_global_to(guild=guild)
-
-            synced = await self.tree.sync(guild=guild)
-
-            print(f"コマンド同期完了: {len(synced)}個")
-
-        except Exception as e:
-            print("❌ エラー発生:", e)
-
-    async def close(self):
-        await self.db.close()
-        await super().close()
-
-
-bot = CharacterBot()
-
-
-@bot.event
-async def on_ready():
-    print("--------------------------------")
-    print(f"ログイン: {bot.user}")
-    print("--------------------------------")
-
-
-bot.run(TOKEN)
+    print(f"コマンド同期完了: {len(synced)}個")
