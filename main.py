@@ -8,32 +8,30 @@ from database.db import Database
 class CharacterBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
-
-        super().__init__(
-            command_prefix="!",
-            intents=intents,
-        )
+        super().__init__(command_prefix="!", intents=intents)
 
         self.db = Database()
 
     async def setup_hook(self):
-        print("データベースへ接続中...")
+        print("DB接続開始")
 
-        await self.db.connect()
-        await self.db.initialize()
+        try:
+            await self.db.connect()
+            await self.db.initialize()
+            print("DB接続完了")
 
-        print("データベース接続完了")
+            await self.load_extension("cogs.search")
+            await self.load_extension("cogs.admin")
 
-        await self.load_extension("cogs.search")
-        await self.load_extension("cogs.admin")
+            guild = discord.Object(id=1521974927505227946)
+            self.tree.copy_global_to(guild=guild)
 
-        # 🔥 ギルド同期（即時反映）
-        guild = discord.Object(id=1521974927505227946)
-        self.tree.copy_global_to(guild=guild)
+            synced = await self.tree.sync(guild=guild)
 
-        synced = await self.tree.sync(guild=guild)
+            print(f"コマンド同期完了: {len(synced)}個")
 
-        print(f"{len(synced)}個のコマンドを同期しました（ギルド同期）")
+        except Exception as e:
+            print("❌ エラー発生:", e)
 
     async def close(self):
         await self.db.close()
