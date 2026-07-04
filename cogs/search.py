@@ -8,46 +8,31 @@ class Search(commands.Cog):
         self.bot = bot
 
     @app_commands.command(
-        name="検索",
+        name="search",
         description="キャラクターを検索します"
     )
-    @app_commands.describe(
-        名前="検索したいキャラクター名"
-    )
-    async def search(
-        self,
-        interaction: discord.Interaction,
-        名前: str,
-    ):
+    async def search(self, interaction: discord.Interaction, 名前: str):
 
-        rows = await self.bot.db.search_character(名前)
+        try:
+            rows = await self.bot.db.search_character(名前)
 
-        if not rows:
-            await interaction.response.send_message(
-                "該当するキャラクターは見つかりませんでした。",
-                ephemeral=True
-            )
-            return
+            if not rows:
+                await interaction.response.send_message("見つかりません", ephemeral=True)
+                return
 
-        embed = discord.Embed(
-            title="検索結果",
-            color=discord.Color.blue()
-        )
+            embed = discord.Embed(title="検索結果")
 
-        for row in rows:
+            for r in rows:
+                embed.add_field(
+                    name=r["name"],
+                    value=f"{r['attribute']} / {r['rarity']}",
+                    inline=False
+                )
 
-            embed.add_field(
-                name=row["name"],
-                value=(
-                    f"**属性**：{row['attribute']}\n"
-                    f"**レア度**：{row['rarity']}"
-                ),
-                inline=False,
-            )
+            await interaction.response.send_message(embed=embed)
 
-        await interaction.response.send_message(
-            embed=embed
-        )
+        except Exception as e:
+            await interaction.response.send_message(f"エラー: {e}", ephemeral=True)
 
 
 async def setup(bot):
