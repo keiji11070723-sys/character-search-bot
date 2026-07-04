@@ -14,28 +14,26 @@ class CharacterBot(commands.Bot):
             intents=intents,
         )
 
-        # データベース
         self.db = Database()
 
     async def setup_hook(self):
         print("データベースへ接続中...")
 
-        # PostgreSQL接続
         await self.db.connect()
-
-        # テーブル作成
         await self.db.initialize()
 
         print("データベース接続完了")
 
-        # Cog読込
         await self.load_extension("cogs.search")
         await self.load_extension("cogs.admin")
 
-        # SlashCommand同期
-        synced = await self.tree.sync()
+        # 🔥 ギルド同期（即時反映）
+        guild = discord.Object(id=1521974927505227946)
+        self.tree.copy_global_to(guild=guild)
 
-        print(f"{len(synced)}個のコマンドを同期しました。")
+        synced = await self.tree.sync(guild=guild)
+
+        print(f"{len(synced)}個のコマンドを同期しました（ギルド同期）")
 
     async def close(self):
         await self.db.close()
